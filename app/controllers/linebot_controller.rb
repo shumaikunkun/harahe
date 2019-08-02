@@ -11,7 +11,11 @@ class LinebotController < ApplicationController
     }
   end
 
+
+
   def callback
+
+
     body = request.body.read
 
     signature = request.env['HTTP_X_LINE_SIGNATURE']
@@ -21,6 +25,7 @@ class LinebotController < ApplicationController
       if event.class == Line::Bot::Event::Message
         if event.type == Line::Bot::Event::MessageType::Text
           if event["message"]["text"]=~/検索/
+            @@flag=1
             #質問０
             message = {
               "type": "template",
@@ -32,21 +37,25 @@ class LinebotController < ApplicationController
                   {
                     "type": "postback",
                     "label": "地図から指定する",
-                    "data": "0.0"
+                    "data": "0.0",
+                    text:"地図から指定する"
                   },
                   {
                     "type": "postback",
                     "label": "地域名を指定する",
-                    "data": "0.1"
+                    "data": "0.1",
+                    text:"地域名を指定する"
                   },
                   {
                     "type": "postback",
                     "label": "スキップ",
-                    "data": "0.2"
+                    "data": "0.2",
+                    text:"スキップ"
                   }
                 ]
               }
             }
+
           elsif event["message"]["text"]=="時刻"
             message={
               type: "text",
@@ -58,10 +67,12 @@ class LinebotController < ApplicationController
               text: "test"
             }
           else
-            message={
-              type: "text",
-              text: "『検索』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
-            }
+            if @@flag!=1
+              message={
+                type: "text",
+                text: "『検索』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
+              }
+            end
           end
 
         end
@@ -83,17 +94,20 @@ class LinebotController < ApplicationController
                 {
                   "type": "postback",
                   "label": "徒歩(半径500m圏内を表示)",
-                  "data": "1.0"
+                  "data": "1.0",
+                  text:"徒歩で行く"
                 },
                 {
                   "type": "postback",
                   "label": "自転車(半径2km圏内を表示)",
-                  "data": "1.1"
+                  "data": "1.1",
+                  text:"自転車で行く"
                 },
                 {
                   "type": "postback",
                   "label": "車(半径5km圏内を表示)",
-                  "data": "1.2"
+                  "data": "1.2",
+                  text:"車で行く"
                 }
               ]
             }
@@ -136,22 +150,26 @@ class LinebotController < ApplicationController
                 {
                   "type": "postback",
                   "label": "吾妻・竹園周辺",
-                  "data": "2.0"
+                  "data": "2.0",
+                  text:"吾妻・竹園周辺あたりかなあ"
                 },
                 {
                   "type": "postback",
                   "label": "春日・天久保周辺",
-                  "data": "2.1"
+                  "data": "2.1",
+                  text:"春日・天久保周辺あたりかな"
                 },
                 {
                   "type": "postback",
                   "label": "天王台・桜周辺",
-                  "data": "2.2"
+                  "data": "2.2",
+                  text:"天王台・桜周辺あたりかな"
                 },
                 {
                   "type": "postback",
                   "label": "一の矢・花畑周辺",
-                  "data": "2.3"
+                  "data": "2.3",
+                  text:"一の矢・花畑周辺あたりかな"
                 }
               ]
             }
@@ -178,18 +196,21 @@ class LinebotController < ApplicationController
               "actions": [
                 {
                   "type": "postback",
-                  "label": "現在時刻",
-                  "data": "3.1"
+                  "label": "現在時刻を使う",
+                  "data": "3.1",
+                  text:"現在時刻を使う"
                 },
                 {
                   "type": "postback",
                   "label": "時間を指定する",
-                  "data": "3.0"
+                  "data": "3.0",
+                  text:"時間を指定する"
                 },
                 {
                   "type": "postback",
                   "label": "スキップ",
-                  "data": "3.2"
+                  "data": "3.2",
+                  text:"スキップ"
                 }
               ]
             }
@@ -221,50 +242,49 @@ class LinebotController < ApplicationController
 
           if event["postback"]["data"]=="3.1"
             #データベースに現在日時をデータベースに入れる
-            message={
-              type:"text",
-              text: Date.parse(Time.now.strftime("%Y-%m-%d")).wday
-              #text: Date.parse(Time.now.strftime("%Y-%m-%dT%H:%M").split("T")[0]).wday
-            }
+            #text: Date.parse(Time.now.strftime("%Y-%m-%d")).wday
+            #text: Time.now.strftime("%H:%M")
           elsif event["postback"]["data"]=="3.3"
             #データベースに選択された日時をデータベースに入れる
-            message={
-              type:"text",
-              #text: event["postback"]["params"]["datetime"]
-              text: Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday
-            }
+            #text: Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday
+            #text: event["postback"]["params"]["datetime"].split("T")[1]
           end
+
           #質問４
-          # message = {
-          #   "type": "template",
-          #   "altText": "質問に答えてね！",
-          #   "template": {
-          #     "type": "buttons",
-          #     "text": "ジャンルは？",
-          #     "actions": [
-          #       {
-          #         "type": "postback",
-          #         "label": "和食",
-          #         "data": "4.0"
-          #       },
-          #       {
-          #         "type": "postback",
-          #         "label": "洋食",
-          #         "data": "4.1"
-          #       },
-          #       {
-          #         "type": "postback",
-          #         "label": "中華",
-          #         "data": "4.2"
-          #       },
-          #       {
-          #         "type": "postback",
-          #         "label": "エスニック",
-          #         "data": "4.3"
-          #       }
-          #     ]
-          #   }
-          # }
+          message = {
+            "type": "template",
+            "altText": "質問に答えてね！",
+            "template": {
+              "type": "buttons",
+              "text": "ジャンルは？",
+              "actions": [
+                {
+                  "type": "postback",
+                  "label": "和食",
+                  "data": "4.0",
+                  text:"和食がいい！"
+                },
+                {
+                  "type": "postback",
+                  "label": "洋食",
+                  "data": "4.1",
+                  text:"洋食いい！"
+                },
+                {
+                  "type": "postback",
+                  "label": "中華",
+                  "data": "4.2",
+                  text:"中華いい！"
+                },
+                {
+                  "type": "postback",
+                  "label": "エスニック",
+                  "data": "4.3",
+                  text:"エスニックいい！"
+                }
+              ]
+            }
+          }
         end
 
         if event["postback"]["data"].to_i==4 #4.
@@ -280,12 +300,14 @@ class LinebotController < ApplicationController
                 {
                   "type": "postback",
                   "label": "いいね！",
-                  "data": "5.0"
+                  "data": "5.0",
+                  text:"ラーメンがいい！"
                 },
                 {
                   "type": "postback",
                   "label": "それはちょっと…",
-                  "data": "5.1"
+                  "data": "5.1",
+                  text:"ラーメンの気分じゃないなあ…"
                 }
               ]
             }
@@ -295,85 +317,94 @@ class LinebotController < ApplicationController
         if event["postback"]["data"].to_i==5 #5.
           #ラーメンだけにするか。しないかをモデルに格納
           #検索結果
-          message = {
-            "type": "flex",
-            "altText": "#",
-            "contents": {
-              "type": "bubble",
-              "hero": {
-                "type": "image",
-                "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-                "size": "full",
-                "aspectRatio": "20:13",
-                "aspectMode": "cover",
-                "action": {
-                  "type": "uri",
-                  "uri": "https://classmethod.jp/"
-                }
-              },
-              "body": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "md",
-                "action": {
-                  "type": "uri",
-                  "uri": "https://classmethod.jp/"
-                },
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "清六屋",
-                    "size": "xl",
-                    "weight": "bold"
-                  },
-                  {
-                    "type": "box",
-                    "layout": "baseline",
-                    "spacing": "sm",
-                    "contents": [
-                      {
-                        "type": "text",
-                        "text": "Place",
-                        "color": "#aaaaaa",
-                        "size": "sm",
-                        "flex": 1
-                      },
-                      {
-                        "type": "text",
-                        "text": "茨城県つくば市天久保3丁目4-8",
-                        "wrap": true,
-                        "color": "#666666",
-                        "size": "sm",
-                        "flex": 5
-                      }
-                    ]
-                  },
-                  {
-                    "type": "box",
-                    "layout": "baseline",
-                    "spacing": "sm",
-                    "contents": [
-                      {
-                        "type": "text",
-                        "text": "営業時間",
-                        "color": "#aaaaaa",
-                        "size": "sm",
-                        "flex": 1
-                      },
-                      {
-                        "type": "text",
-                        "text": "10:00-18:00",
-                        "wrap": true,
-                        "color": "#666666",
-                        "size": "sm",
-                        "flex": 5
-                      }
-                    ]
+          message =
+          [
+            {
+              "type": "text",
+              "text": "おすすめのお店は..."
+            },
+            {
+              "type": "flex",
+              "altText": "#",
+              "contents": {
+                "type": "bubble",
+                "hero": {
+                  "type": "image",
+                  "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
+                  "size": "full",
+                  "aspectRatio": "20:13",
+                  "aspectMode": "cover",
+                  "action": {
+                    "type": "uri",
+                    "uri": "https://classmethod.jp/"
                   }
-                ]
+                },
+                "body": {
+                  "type": "box",
+                  "layout": "vertical",
+                  "spacing": "md",
+                  "action": {
+                    "type": "uri",
+                    "uri": "https://classmethod.jp/"
+                  },
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "清六屋",
+                      "size": "xl",
+                      "weight": "bold"
+                    },
+                    {
+                      "type": "box",
+                      "layout": "baseline",
+                      "spacing": "sm",
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "Place",
+                          "color": "#aaaaaa",
+                          "size": "sm",
+                          "flex": 1
+                        },
+                        {
+                          "type": "text",
+                          "text": "茨城県つくば市天久保3丁目4-8",
+                          "wrap": true,
+                          "color": "#666666",
+                          "size": "sm",
+                          "flex": 5
+                        }
+                      ]
+                    },
+                    {
+                      "type": "box",
+                      "layout": "baseline",
+                      "spacing": "sm",
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "営業時間",
+                          "color": "#aaaaaa",
+                          "size": "sm",
+                          "flex": 1
+                        },
+                        {
+                          "type": "text",
+                          "text": "10:00-18:00",
+                          "wrap": true,
+                          "color": "#666666",
+                          "size": "sm",
+                          "flex": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
               }
             }
-          }
+          ]
+
+          @@flag=0
         end
 
       end
