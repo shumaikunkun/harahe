@@ -15,9 +15,7 @@ class LinebotController < ApplicationController
 
   def callback
 
-
     body = request.body.read
-
     signature = request.env['HTTP_X_LINE_SIGNATURE']
     head :bad_request unless client.validate_signature(body, signature)
 
@@ -44,9 +42,9 @@ class LinebotController < ApplicationController
                 "actions": [
                   {
                     "type": "postback",
-                    "label": "地図から指定する",
+                    "label": "地図から出発地を指定する",
                     "data": "0.0",
-                    text:"地図から指定する"
+                    text:"地図から出発地を指定する"
                   },
                   {
                     "type": "postback",
@@ -70,7 +68,7 @@ class LinebotController < ApplicationController
               type: "text",
               text: Time.new
             }
-          elsif event["message"]["text"]=="現在地"
+          elsif event["message"]["text"]=="画像"
             message={
               type: "text",
               text: "test"
