@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: MyString
+  lat: 1.5
+  lon: 1.5
+  trans: 1
+  region: 1
+  day: 1
+  time: MyString
+  genre: 1
+  ramen: 1
+
+two:
+  user: MyString
+  lat: 1.5
+  lon: 1.5
+  trans: 1
+  region: 1
+  day: 1
+  time: MyString
+  genre: 1
+  ramen: 1
