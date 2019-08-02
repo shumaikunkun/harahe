@@ -28,7 +28,7 @@ class LinebotController < ApplicationController
             @@flag=1
             #モデルに登録&初期化
             #ユーザIDは、event["source"]["userId"]
-            if Answer.find_by(user:event["source"]["userId"])
+            if Answer.find_by(user:event["source"]["userId"])  #ユーザがすでにモデルに登録されていたら、上書き、なければ、新規登録
               Answer.find_by(user:event["source"]["userId"]).update(lat:nil, lon:nil, trans:nil, region:nil, day:nil, time:nil, genre:nil, ramen:nil)
             else
               Answer.create(user:event["source"]["userId"])
@@ -40,7 +40,7 @@ class LinebotController < ApplicationController
               "altText": "質問に答えてね！",
               "template": {
                 "type": "buttons",
-                "text": "場所は？",
+                "text": "どこらへんがいい？",
                 "actions": [
                   {
                     "type": "postback",
@@ -56,9 +56,9 @@ class LinebotController < ApplicationController
                   },
                   {
                     "type": "postback",
-                    "label": "スキップ",
+                    "label": "スキップする…",
                     "data": "0.2",
-                    text:"スキップ"
+                    text:"スキップする…"
                   }
                 ]
               }
@@ -105,19 +105,19 @@ class LinebotController < ApplicationController
                   "type": "postback",
                   "label": "徒歩(半径500m圏内を表示)",
                   "data": "1.0",
-                  text:"徒歩で行く"
+                  text:"徒歩で行く🚶‍♂️"
                 },
                 {
                   "type": "postback",
                   "label": "自転車(半径2km圏内を表示)",
                   "data": "1.1",
-                  text:"自転車で行く"
+                  text:"自転車で行く🚲"
                 },
                 {
                   "type": "postback",
                   "label": "車(半径5km圏内を表示)",
                   "data": "1.2",
-                  text:"車で行く"
+                  text:"車で行く🚗"
                 }
               ]
             }
@@ -201,25 +201,25 @@ class LinebotController < ApplicationController
             "altText": "質問に答えてね！",
             "template": {
               "type": "buttons",
-              "text": "時間は？",
+              "text": "いつお店に行く？",
               "actions": [
                 {
                   "type": "postback",
-                  "label": "現在時刻を使う",
+                  "label": "今でしょ！",
                   "data": "3.1",
-                  text:"現在時刻を使う"
+                  text:"今行きます！"
                 },
                 {
                   "type": "postback",
-                  "label": "時間を指定する",
+                  "label": "時間を指定したい！",
                   "data": "3.0",
-                  text:"時間を指定する"
+                  text:"時間を指定したい！"
                 },
                 {
                   "type": "postback",
-                  "label": "スキップ",
+                  "label": "スキップする…",
                   "data": "3.2",
-                  text:"スキップ"
+                  text:"スキップする…"
                 }
               ]
             }
@@ -332,173 +332,177 @@ class LinebotController < ApplicationController
           #ラーメンだけにするか。しないかをモデルに格納
           Answer.find_by(user:event["source"]["userId"]).update(ramen:event["postback"]["data"].split(".")[1])
           #検索結果
-          message={
-            type: "text",
-            text: Answer.find_by(user:event["source"]["userId"]).to_json
-          }
-          # [
-          #   {
-          #     "type": "text",
-          #     "text": "おすすめのお店は..."
-          #   },
-          #   "type": "flex",
-          #   "altText": "this is a flex message",
-          #   "contents": {
-          #     "type": "carousel",
-          #     "contents": [
-          #       {
-          #         "type": "bubble",
-          #         "hero": {
-          #           "type": "image",
-          #           "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-          #           "size": "full",
-          #           "aspectRatio": "20:13",
-          #           "aspectMode": "cover",
-          #           "action": {
-          #             "type": "uri",
-          #             "uri": "https://classmethod.jp/"
-          #           }
-          #         },
-          #         "body": {
-          #           "type": "box",
-          #           "layout": "vertical",
-          #           "spacing": "md",
-          #           "action": {
-          #             "type": "uri",
-          #             "uri": "https://classmethod.jp/"
-          #           },
-          #           "contents": [
-          #             {
-          #               "type": "text",
-          #               "text": "清六屋",
-          #               "size": "xl",
-          #               "weight": "bold"
-          #             },
-          #             {
-          #               "type": "box",
-          #               "layout": "baseline",
-          #               "spacing": "sm",
-          #               "contents": [
-          #                 {
-          #                   "type": "text",
-          #                   "text": "Place",
-          #                   "color": "#aaaaaa",
-          #                   "size": "sm",
-          #                   "flex": 1
-          #                 },
-          #                 {
-          #                   "type": "text",
-          #                   "text": "茨城県つくば市天久保3丁目4-8",
-          #                   "wrap": true,
-          #                   "color": "#666666",
-          #                   "size": "sm",
-          #                   "flex": 5
-          #                 }
-          #               ]
-          #             },
-          #             {
-          #               "type": "box",
-          #               "layout": "baseline",
-          #               "spacing": "sm",
-          #               "contents": [
-          #                 {
-          #                   "type": "text",
-          #                   "text": "営業時間",
-          #                   "color": "#aaaaaa",
-          #                   "size": "sm",
-          #                   "flex": 1
-          #                 },
-          #                 {
-          #                   "type": "text",
-          #                   "text": "10:00-18:00",
-          #                   "wrap": true,
-          #                   "color": "#666666",
-          #                   "size": "sm",
-          #                   "flex": 5
-          #                 }
-          #               ]
-          #             }
-          #           ]
-          #         }
-          #       },
-          #       {
-          #         "type": "bubble",
-          #         "hero": {
-          #           "type": "image",
-          #           "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-          #           "size": "full",
-          #           "aspectRatio": "20:13",
-          #           "aspectMode": "cover",
-          #           "action": {
-          #             "type": "uri",
-          #             "uri": "https://classmethod.jp/"
-          #           }
-          #         },
-          #         "body": {
-          #           "type": "box",
-          #           "layout": "vertical",
-          #           "spacing": "md",
-          #           "action": {
-          #             "type": "uri",
-          #             "uri": "https://classmethod.jp/"
-          #           },
-          #           "contents": [
-          #             {
-          #               "type": "text",
-          #               "text": "清六屋",
-          #               "size": "xl",
-          #               "weight": "bold"
-          #             },
-          #             {
-          #               "type": "box",
-          #               "layout": "baseline",
-          #               "spacing": "sm",
-          #               "contents": [
-          #                 {
-          #                   "type": "text",
-          #                   "text": "Place",
-          #                   "color": "#aaaaaa",
-          #                   "size": "sm",
-          #                   "flex": 1
-          #                 },
-          #                 {
-          #                   "type": "text",
-          #                   "text": "茨城県つくば市天久保3丁目4-8",
-          #                   "wrap": true,
-          #                   "color": "#666666",
-          #                   "size": "sm",
-          #                   "flex": 5
-          #                 }
-          #               ]
-          #             },
-          #             {
-          #               "type": "box",
-          #               "layout": "baseline",
-          #               "spacing": "sm",
-          #               "contents": [
-          #                 {
-          #                   "type": "text",
-          #                   "text": "営業時間",
-          #                   "color": "#aaaaaa",
-          #                   "size": "sm",
-          #                   "flex": 1
-          #                 },
-          #                 {
-          #                   "type": "text",
-          #                   "text": "10:00-18:00",
-          #                   "wrap": true,
-          #                   "color": "#666666",
-          #                   "size": "sm",
-          #                   "flex": 5
-          #                 }
-          #               ]
-          #             }
-          #           ]
-          #         }
-          #       }
-          #     ]
-          #   }
-          # ]
+          json=Answer.find_by(user:event["source"]["userId"]).to_json
+          message=
+          [
+            {
+              "type": "text",
+              "text": json
+            },
+            {
+              "type": "text",
+              "text": "おすすめのお店は..."
+            },
+            {
+              "type": "flex",
+              "altText": "this is a flex message",
+              "contents": {
+                "type": "carousel",
+                "contents": [
+                  {
+                    "type": "bubble",
+                    "hero": {
+                      "type": "image",
+                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
+                      "size": "full",
+                      "aspectRatio": "20:13",
+                      "aspectMode": "cover",
+                      "action": {
+                        "type": "uri",
+                        "uri": "https://classmethod.jp/"
+                      }
+                    },
+                    "body": {
+                      "type": "box",
+                      "layout": "vertical",
+                      "spacing": "md",
+                      "action": {
+                        "type": "uri",
+                        "uri": "https://classmethod.jp/"
+                      },
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "清六屋",
+                          "size": "xl",
+                          "weight": "bold"
+                        },
+                        {
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "Place",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": "茨城県つくば市天久保3丁目4-8",
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
+                        },
+                        {
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "営業時間",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": "10:00-18:00",
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "bubble",
+                    "hero": {
+                      "type": "image",
+                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
+                      "size": "full",
+                      "aspectRatio": "20:13",
+                      "aspectMode": "cover",
+                      "action": {
+                        "type": "uri",
+                        "uri": "https://classmethod.jp/"
+                      }
+                    },
+                    "body": {
+                      "type": "box",
+                      "layout": "vertical",
+                      "spacing": "md",
+                      "action": {
+                        "type": "uri",
+                        "uri": "https://classmethod.jp/"
+                      },
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "清六屋",
+                          "size": "xl",
+                          "weight": "bold"
+                        },
+                        {
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "Place",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": "茨城県つくば市天久保3丁目4-8",
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
+                        },
+                        {
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "営業時間",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": "10:00-18:00",
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
           @@flag=0
         end
 
