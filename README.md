@@ -19,4 +19,4 @@ LINE BOT「harahe」です。
 
 ## LINEアカウント
 
-
+https://line.me/R/ti/p/%40036cidsf
