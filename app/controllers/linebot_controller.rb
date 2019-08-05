@@ -329,96 +329,97 @@ class LinebotController < ApplicationController
           #json=Answer.find_by(user:event["source"]["userId"]).to_json
 
           #Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({img:gyou.img, name:gyou.name, url:gyou.url, address:gyou.address, time:gyou.mon})}
+          day_arr=["sun","mon","tue","wed","thu","fry"]
+          day=day_arr[Date.parse(Time.now.strftime("%Y-%m-%d")).wday]  #検索した日の曜日を格納
+          #logger.debug("\n\ntestです=>#{ day }\n\n")
+
+
 
           arr=[]
-          Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({
-            "type": "bubble",
-            "hero": {
-              "type": "image",
-              "url": gyou.img, ###
-              "size": "full",
-              "aspectRatio": "20:13",
-              "aspectMode": "cover",
-              "action": {
-                "type": "uri",
-                "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
-              }
-            },
-            "body": {
-              "type": "box",
-              "layout": "vertical",
-              "spacing": "md",
-              "action": {
-                "type": "uri",
-                "uri": "https://github.com/shumaikunkun" ###
-              },
-              "contents": [
-                {
-                  "type": "text",
-                  "text": gyou.name, ###
-                  "size": "xl",
-                  "weight": "bold"
+          Restaurant.all.each do |gyou|
+
+            arr.push(
+              {
+                "type": "bubble",
+                "hero": {
+                  "type": "image",
+                  "url": gyou.img, ###
+                  "size": "full",
+                  "aspectRatio": "20:13",
+                  "aspectMode": "cover",
+                  "action": {
+                    "type": "uri",
+                    "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
+                  }
                 },
-                {
+                "body": {
                   "type": "box",
-                  "layout": "baseline",
-                  "spacing": "sm",
+                  "layout": "vertical",
+                  "spacing": "md",
+                  "action": {
+                    "type": "uri",
+                    "uri": "https://github.com/shumaikunkun" ###
+                  },
                   "contents": [
                     {
                       "type": "text",
-                      "text": "Place",
-                      "color": "#aaaaaa",
-                      "size": "sm",
-                      "flex": 1
+                      "text": gyou.name, ###
+                      "size": "xl",
+                      "weight": "bold"
                     },
                     {
-                      "type": "text",
-                      "text": gyou.address, ###
-                      "wrap": true,
-                      "color": "#666666",
-                      "size": "sm",
-                      "flex": 5
-                    }
-                  ]
-                },
-                {
-                  "type": "box",
-                  "layout": "baseline",
-                  "spacing": "sm",
-                  "contents": [
-                    {
-                      "type": "text",
-                      "text": "営業時間",
-                      "color": "#aaaaaa",
-                      "size": "sm",
-                      "flex": 1
+                      "type": "box",
+                      "layout": "baseline",
+                      "spacing": "sm",
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "Place",
+                          "color": "#aaaaaa",
+                          "size": "sm",
+                          "flex": 1
+                        },
+                        {
+                          "type": "text",
+                          "text": gyou.address, ###
+                          "wrap": true,
+                          "color": "#666666",
+                          "size": "sm",
+                          "flex": 5
+                        }
+                      ]
                     },
                     {
-                      "type": "text",
-                      "text": gyou["mon"], ###
-                      "wrap": true,
-                      "color": "#666666",
-                      "size": "sm",
-                      "flex": 5
+                      "type": "box",
+                      "layout": "baseline",
+                      "spacing": "sm",
+                      "contents": [
+                        {
+                          "type": "text",
+                          "text": "営業時間",
+                          "color": "#aaaaaa",
+                          "size": "sm",
+                          "flex": 1
+                        },
+                        {
+                          "type": "text",
+                          "text": (gyou[day]=="-1" ? "本日休業日" : gyou[day]), ###
+                          "wrap": true,
+                          "color": "#666666",
+                          "size": "sm",
+                          "flex": 5
+                        }
+                      ]
                     }
                   ]
                 }
-              ]
-            }
-          }
-          )}
+              })
+          end
 
-
-          #10.times{arr.push(store)}
-          logger.debug("\n\n#{ arr }\n\n")
-
+          logger.debug(arr)
 
           message=
           [
-            {
-              "type": "text",
-              "text": "aaa"
-            },
             {
               "type": "text",
               "text": "おすすめのお店は..."
