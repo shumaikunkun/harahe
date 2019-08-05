@@ -61,8 +61,6 @@ class LinebotController < ApplicationController
                 ]
               }
             }
-
-
           elsif event["message"]["text"]=="時刻"
             message={
               type: "text",
@@ -249,14 +247,12 @@ class LinebotController < ApplicationController
 
           if event["postback"]["data"]=="3.1"
             #データベースに現在日時をデータベースに入れる
-            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(Time.now.strftime("%Y-%m-%d")).wday)
-            Answer.find_by(user:event["source"]["userId"]).update(time:Time.now.strftime("%H:%M"))
+            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(Time.now.strftime("%Y-%m-%d")).wday, time:Time.now.strftime("%H:%M"))
             #text: Date.parse(Time.now.strftime("%Y-%m-%d")).wday
             #text: Time.now.strftime("%H:%M")
           elsif event["postback"]["data"]=="3.3"
             #データベースに選択された日時をデータベースに入れる
-            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday)
-            Answer.find_by(user:event["source"]["userId"]).update(time:event["postback"]["params"]["datetime"].split("T")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday, time:event["postback"]["params"]["datetime"].split("T")[1])
             #text: Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday
             #text: event["postback"]["params"]["datetime"].split("T")[1]
           end
@@ -330,12 +326,98 @@ class LinebotController < ApplicationController
           #ラーメンだけにするか。しないかをモデルに格納
           Answer.find_by(user:event["source"]["userId"]).update(ramen:event["postback"]["data"].split(".")[1])
           #検索結果
-          json=Answer.find_by(user:event["source"]["userId"]).to_json
+          #json=Answer.find_by(user:event["source"]["userId"]).to_json
+
+          #Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({img:gyou.img, name:gyou.name, url:gyou.url, address:gyou.address, time:gyou.mon})}
+
+          arr=[]
+          Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({
+            "type": "bubble",
+            "hero": {
+              "type": "image",
+              "url": gyou.img, ###
+              "size": "full",
+              "aspectRatio": "20:13",
+              "aspectMode": "cover",
+              "action": {
+                "type": "uri",
+                "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
+              }
+            },
+            "body": {
+              "type": "box",
+              "layout": "vertical",
+              "spacing": "md",
+              "action": {
+                "type": "uri",
+                "uri": "https://github.com/shumaikunkun" ###
+              },
+              "contents": [
+                {
+                  "type": "text",
+                  "text": gyou.name, ###
+                  "size": "xl",
+                  "weight": "bold"
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "spacing": "sm",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "Place",
+                      "color": "#aaaaaa",
+                      "size": "sm",
+                      "flex": 1
+                    },
+                    {
+                      "type": "text",
+                      "text": gyou.address, ###
+                      "wrap": true,
+                      "color": "#666666",
+                      "size": "sm",
+                      "flex": 5
+                    }
+                  ]
+                },
+                {
+                  "type": "box",
+                  "layout": "baseline",
+                  "spacing": "sm",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "営業時間",
+                      "color": "#aaaaaa",
+                      "size": "sm",
+                      "flex": 1
+                    },
+                    {
+                      "type": "text",
+                      "text": gyou["mon"], ###
+                      "wrap": true,
+                      "color": "#666666",
+                      "size": "sm",
+                      "flex": 5
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+          )}
+
+
+          #10.times{arr.push(store)}
+          logger.debug("\n\n#{ arr }\n\n")
+
+
           message=
           [
             {
               "type": "text",
-              "text": json
+              "text": "aaa"
             },
             {
               "type": "text",
@@ -346,158 +428,7 @@ class LinebotController < ApplicationController
               "altText": "this is a flex message",
               "contents": {
                 "type": "carousel",
-                "contents": [
-                  {
-                    "type": "bubble",
-                    "hero": {
-                      "type": "image",
-                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-                      "size": "full",
-                      "aspectRatio": "20:13",
-                      "aspectMode": "cover",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      }
-                    },
-                    "body": {
-                      "type": "box",
-                      "layout": "vertical",
-                      "spacing": "md",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      },
-                      "contents": [
-                        {
-                          "type": "text",
-                          "text": "清六屋",
-                          "size": "xl",
-                          "weight": "bold"
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "Place",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "茨城県つくば市天久保3丁目4-8",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "営業時間",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "10:00-18:00",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "type": "bubble",
-                    "hero": {
-                      "type": "image",
-                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-                      "size": "full",
-                      "aspectRatio": "20:13",
-                      "aspectMode": "cover",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      }
-                    },
-                    "body": {
-                      "type": "box",
-                      "layout": "vertical",
-                      "spacing": "md",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      },
-                      "contents": [
-                        {
-                          "type": "text",
-                          "text": "清六屋",
-                          "size": "xl",
-                          "weight": "bold"
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "Place",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "茨城県つくば市天久保3丁目4-8",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "営業時間",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "10:00-18:00",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  }
-                ]
+                "contents": arr #この配列にjsonが入ってる
               }
             }
           ]
