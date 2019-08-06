@@ -334,34 +334,79 @@ class LinebotController < ApplicationController
           #曜日を選択してなければ、今日の曜日を格納
           day=day_arr[day_num]  #店一覧表示の際の開店時間を表示するために曜日を指定（数値をスキーマ名に変換）
 
+          #緯度経度で絞る
+          ans_lat=Answer.find_by(user:event["source"]["userId"]).lat
+          ans_lon=Answer.find_by(user:event["source"]["userId"]).lon
+          ans_trans=Answer.find_by(user:event["source"]["userId"]).trans
+          id_latlon=[]
+          Restaurant.all.each do |gyou|
+            if ans_trans==nil  #スキップしたとき
+              id_latlon.push(gyou.id)
+            else
+              dis=distance(ans_lat, ans_lon, gyou.latitude, gyou.longitude)
+              if (ans_trans==0 && dis<=0.5 ) ||
+                (ans_trans==1 && dis>0.5 && dis<=2 ) ||
+                (ans_trans==2 && dis>2 && dis<=5 )
+                id_latlon.push(gyou.id)
+              end
+            end
+          end
 
-
-
+          #地名で絞る
           ans_region=Answer.find_by(user:event["source"]["userId"]).region
           id_region=[]
           Restaurant.all.each do |gyou|
-            if (ans_region==0 && (gyou.address=~/茨城県つくば市吾妻/ || gyou.address=~/茨城県つくば市竹園/) ) ||
-               (ans_region==1 && (gyou.address=~/茨城県つくば市春日/ || gyou.address=~/茨城県つくば市天久保/) ) ||
-               (ans_region==2 && (gyou.address=~/茨城県つくば市天王台/ || gyou.address=~/茨城県つくば市桜/) ) ||
-               (ans_region==3 && (gyou.address=~/茨城県つくば市花畑/ || gyou.address=~/茨城県つくば市筑穂/) )
+            if ans_region==nil  #スキップしたとき
               id_region.push(gyou.id)
+            else
+              if (ans_region==0 && (gyou.address=~/茨城県つくば市吾妻/ || gyou.address=~/茨城県つくば市竹園/) ) ||
+                (ans_region==1 && (gyou.address=~/茨城県つくば市春日/ || gyou.address=~/茨城県つくば市天久保/) ) ||
+                (ans_region==2 && (gyou.address=~/茨城県つくば市天王台/ || gyou.address=~/茨城県つくば市桜/) ) ||
+                (ans_region==3 && (gyou.address=~/茨城県つくば市花畑/ || gyou.address=~/茨城県つくば市筑穂/) )
+                id_region.push(gyou.id)
+              end
             end
           end
+
+          id_place = id_latlon & id_region #緯度経度と地名のジャンルで絞ったidリストの積集合
+
+          #時間で絞る
+          ans_day=Answer.find_by(user:event["source"]["userId"]).day
+          id_time=[]
+          Restaurant.all.each do |gyou|
+            if ans_day==nil
+              id_time.push(gyou.id)
+            else
+              ans_time=Answer.find_by(user:event["source"]["userId"]).time.gsub(/:/,".").to_f
+              if gyou[day_arr[ans_day]] != "-1" #休みの場合を排除
+                gyou[day_arr[ans_day]].split(",").each do |set|  #格納した曜日と一致する曜日の時間帯に入るか
+                  if set.split("-")[0].to_f<=ans_time && ans_time<=set.split("-")[1].to_f
+                    id_time.push(gyou.id)
+                  end
+                end
+              end
+            end
+          end
+
+          #logger.debug("+++++++++++++++++++++-#{}+++++++++++++++++++++++++")
+
 
 
           #ジャンルを絞る
           ans_genre=Answer.find_by(user:event["source"]["userId"]).genre
           id_genre=[]
           Restaurant.all.each do |gyou|
-            if (ans_genre==0 && gyou.category=="和食") || (ans_genre==1 && gyou.category=="洋食") || (ans_genre==2 && gyou.category=="中華") || (ans_genre==3 && gyou.category=="エスニック")
+            if (ans_genre==0 && gyou.category=="和食") || (ans_genre==1 && gyou.category=="洋食") ||
+              (ans_genre==2 && gyou.category=="中華") || (ans_genre==3 && gyou.category=="エスニック")
               id_genre.push(gyou.id)
             end
           end
 
+          id= id_place & id_time & id_genre #全てマッチした店のidを追加
+          id=[1,2,3,4,5,6,7,8,9,10]
 
-logger.debug("++++++++++++++++++++++#{ans_region}+++++++++++++++++++++++++")
+          #idにラーメンをpushするかしないか
 
-          id=id_region #全てマッチした店のidを追加
           arr=[]
           Restaurant.all.each do |gyou|
             id.each do |i|
@@ -473,6 +518,31 @@ logger.debug("++++++++++++++++++++++#{ans_region}+++++++++++++++++++++++++")
 
     end
     head :ok
+  end
+
+
+  #単位はkm
+  #lat1,lng1は現在位置の緯度経度、lat2,lng2は店舗の緯度経度
+  def distance(lat1, lng1, lat2, lng2)
+    # ラジアン単位に変換
+    x1 = lat1.to_f * Math::PI / 180
+    y1 = lng1.to_f * Math::PI / 180
+    x2 = lat2.to_f * Math::PI / 180
+    y2 = lng2.to_f * Math::PI / 180
+    # 地球の半径 (km)
+    radius = 6378.137
+    # 差の絶対値
+    diff_y = (y1 - y2).abs
+    calc1 = Math.cos(x2) * Math.sin(diff_y)
+    calc2 = Math.cos(x1) * Math.sin(x2) - Math.sin(x1) * Math.cos(x2) * Math.cos(diff_y)
+    # 分子
+    numerator = Math.sqrt(calc1 ** 2 + calc2 ** 2)
+    # 分母
+    denominator = Math.sin(x1) * Math.sin(x2) + Math.cos(x1) * Math.cos(x2) * Math.cos(diff_y)
+    # 弧度
+    degree = Math.atan2(numerator, denominator)
+    # 大円距離 (km)
+    return degree * radius
   end
 
 end
