@@ -335,6 +335,20 @@ class LinebotController < ApplicationController
           day=day_arr[day_num]  #店一覧表示の際の開店時間を表示するために曜日を指定（数値をスキーマ名に変換）
 
 
+
+
+          ans_region=Answer.find_by(user:event["source"]["userId"]).region
+          id_region=[]
+          Restaurant.all.each do |gyou|
+            if (ans_region==0 && (gyou.address=~/茨城県つくば市吾妻/ || gyou.address=~/茨城県つくば市竹園/) ) ||
+               (ans_region==1 && (gyou.address=~/茨城県つくば市春日/ || gyou.address=~/茨城県つくば市天久保/) ) ||
+               (ans_region==2 && (gyou.address=~/茨城県つくば市天王台/ || gyou.address=~/茨城県つくば市桜/) ) ||
+               (ans_region==3 && (gyou.address=~/茨城県つくば市花畑/ || gyou.address=~/茨城県つくば市筑穂/) )
+              id_region.push(gyou.id)
+            end
+          end
+
+
           #ジャンルを絞る
           ans_genre=Answer.find_by(user:event["source"]["userId"]).genre
           id_genre=[]
@@ -345,9 +359,9 @@ class LinebotController < ApplicationController
           end
 
 
-logger.debug("++++++++++++++++++++++#{id_genre}+++++++++++++++++++++++++")
+logger.debug("++++++++++++++++++++++#{ans_region}+++++++++++++++++++++++++")
 
-          id=id_genre #全てマッチした店のidを追加
+          id=id_region #全てマッチした店のidを追加
           arr=[]
           Restaurant.all.each do |gyou|
             id.each do |i|
@@ -432,9 +446,6 @@ logger.debug("++++++++++++++++++++++#{id_genre}+++++++++++++++++++++++++")
               end
             end
           end
-
-
-
 
 
           message=
