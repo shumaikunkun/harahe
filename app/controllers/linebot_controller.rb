@@ -333,92 +333,103 @@ class LinebotController < ApplicationController
           day_num=Answer.where(user:event["source"]["userId"]).pluck(:day)[0] ? Answer.where(user:event["source"]["userId"]).pluck(:day)[0] : Date.parse(Time.now.strftime("%Y-%m-%d")).wday
           #曜日を選択してなければ、今日の曜日を格納
           day=day_arr[day_num]  #店一覧表示の際の開店時間を表示するために曜日を指定（数値をスキーマ名に変換）
-          logger.debug("\n\ntestです=>#{ day_num }と#{day}\n\n")
 
 
 
+
+
+
+
+
+          id=[1,2,3] #全てマッチした店のidを追加
           arr=[]
           Restaurant.all.each do |gyou|
-
-            arr.push(
-              {
-                "type": "bubble",
-                "hero": {
-                  "type": "image",
-                  "url": gyou.img, ###
-                  "size": "full",
-                  "aspectRatio": "20:13",
-                  "aspectMode": "cover",
-                  "action": {
-                    "type": "uri",
-                    "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
-                  }
-                },
-                "body": {
-                  "type": "box",
-                  "layout": "vertical",
-                  "spacing": "md",
-                  "action": {
-                    "type": "uri",
-                    "uri": "https://github.com/shumaikunkun" ###
-                  },
-                  "contents": [
-                    {
-                      "type": "text",
-                      "text": gyou.name, ###
-                      "size": "xl",
-                      "weight": "bold"
+            id.each do |i|
+              if gyou.id==i
+                arr.push(
+                  {
+                    "type": "bubble",
+                    "hero": {
+                      "type": "image",
+                      "url": gyou.img, ###
+                      "size": "full",
+                      "aspectRatio": "20:13",
+                      "aspectMode": "cover",
+                      "action": {
+                        "type": "uri",
+                        "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
+                      }
                     },
-                    {
+                    "body": {
                       "type": "box",
-                      "layout": "baseline",
-                      "spacing": "sm",
+                      "layout": "vertical",
+                      "spacing": "md",
+                      "action": {
+                        "type": "uri",
+                        "uri": "https://github.com/shumaikunkun" ###
+                      },
                       "contents": [
                         {
                           "type": "text",
-                          "text": "Place",
-                          "color": "#aaaaaa",
-                          "size": "sm",
-                          "flex": 1
+                          "text": gyou.id.to_s, ###
+                          "size": "xl",
+                          "weight": "bold"
                         },
                         {
-                          "type": "text",
-                          "text": gyou.address, ###
-                          "wrap": true,
-                          "color": "#666666",
-                          "size": "sm",
-                          "flex": 5
-                        }
-                      ]
-                    },
-                    {
-                      "type": "box",
-                      "layout": "baseline",
-                      "spacing": "sm",
-                      "contents": [
-                        {
-                          "type": "text",
-                          "text": "営業時間",
-                          "color": "#aaaaaa",
-                          "size": "sm",
-                          "flex": 1
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "Place",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": gyou.address, ###
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
                         },
                         {
-                          "type": "text",
-                          "text": (gyou[day]=="-1" ? "本日休業日" : gyou[day]), ###
-                          "wrap": true,
-                          "color": "#666666",
-                          "size": "sm",
-                          "flex": 5
+                          "type": "box",
+                          "layout": "baseline",
+                          "spacing": "sm",
+                          "contents": [
+                            {
+                              "type": "text",
+                              "text": "営業時間",
+                              "color": "#aaaaaa",
+                              "size": "sm",
+                              "flex": 1
+                            },
+                            {
+                              "type": "text",
+                              "text": (gyou[day]=="-1" ? "本日休業日" : gyou[day]), ###
+                              "wrap": true,
+                              "color": "#666666",
+                              "size": "sm",
+                              "flex": 5
+                            }
+                          ]
                         }
                       ]
                     }
-                  ]
-                }
-              })
+                  }
+                )
+              end
+            end
           end
 
-          logger.debug(arr)
+
+          logger.debug("++++++++++++++++++++++#{arr}+++++++++++++++++++++++++")
+
 
           message=
           [
