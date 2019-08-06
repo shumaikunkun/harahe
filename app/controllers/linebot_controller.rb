@@ -329,9 +329,11 @@ class LinebotController < ApplicationController
           #json=Answer.find_by(user:event["source"]["userId"]).to_json
 
           #Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({img:gyou.img, name:gyou.name, url:gyou.url, address:gyou.address, time:gyou.mon})}
-          day_arr=["sun","mon","tue","wed","thu","fry"]
-          day=day_arr[Date.parse(Time.now.strftime("%Y-%m-%d")).wday]  #検索した日の曜日を格納
-          #logger.debug("\n\ntestです=>#{ day }\n\n")
+          day_arr=["sun","mon","tue","wed","thu","fry","sat"]
+          day_num=Answer.where(user:event["source"]["userId"]).pluck(:day)[0] ? Answer.where(user:event["source"]["userId"]).pluck(:day)[0] : Date.parse(Time.now.strftime("%Y-%m-%d")).wday
+          #曜日を選択してなければ、今日の曜日を格納
+          day=day_arr[day_num]  #店一覧表示の際の開店時間を表示するために曜日を指定（数値をスキーマ名に変換）
+          logger.debug("\n\ntestです=>#{ day_num }と#{day}\n\n")
 
 
 
