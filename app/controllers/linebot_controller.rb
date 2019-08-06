@@ -88,7 +88,7 @@ class LinebotController < ApplicationController
           # event["message"]["latitude"]
           # event["message"]["longitude"]
           #で参照できる
-          Answer.find_by(user:event["source"]["userId"]).update(lat:event["message"]["latitude"], lon:event["message"]["longitude"])
+          Answer.find_by(user:event["source"]["userId"]).update(lat:event["message"]["latitude"], lon:event["message"]["longitude"], region:nil)
           #質問１
           message = {
             "type": "template",
@@ -184,10 +184,10 @@ class LinebotController < ApplicationController
 
         if event["postback"]["data"].to_f>=0.2 && event["postback"]["data"].to_f<3 #0.2, 1. ,2.の時
           if event["postback"]["data"].to_i==1
-            Answer.find_by(user:event["source"]["userId"]).update(trans:event["postback"]["data"].split(".")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(trans:event["postback"]["data"].split(".")[1], region:nil)
             #交通手段取得
           elsif event["postback"]["data"].to_i==2
-            Answer.find_by(user:event["source"]["userId"]).update(region:event["postback"]["data"].split(".")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(region:event["postback"]["data"].split(".")[1], trans:nil, lat:nil, lon:nil)
             #地域取得
           end
 
@@ -275,19 +275,19 @@ class LinebotController < ApplicationController
                   "type": "postback",
                   "label": "洋食",
                   "data": "4.1",
-                  text: "洋食いい！"
+                  text: "洋食がいい！"
                 },
                 {
                   "type": "postback",
                   "label": "中華",
                   "data": "4.2",
-                  text: "中華いい！"
+                  text: "中華がいい！"
                 },
                 {
                   "type": "postback",
                   "label": "エスニック",
                   "data": "4.3",
-                  text: "エスニックいい！"
+                  text: "エスニックがいい！"
                 }
               ]
             }
@@ -388,29 +388,37 @@ class LinebotController < ApplicationController
             end
           end
 
-          #logger.debug("+++++++++++++++++++++-#{}+++++++++++++++++++++++++")
-
 
 
           #ジャンルを絞る
           ans_genre=Answer.find_by(user:event["source"]["userId"]).genre
+          ans_ramen=Answer.find_by(user:event["source"]["userId"]).ramen
           id_genre=[]
           Restaurant.all.each do |gyou|
             if (ans_genre==0 && gyou.category=="和食") || (ans_genre==1 && gyou.category=="洋食") ||
-              (ans_genre==2 && gyou.category=="中華") || (ans_genre==3 && gyou.category=="エスニック")
+              (ans_genre==2 && gyou.category=="中華") || (ans_genre==3 && gyou.category=="エスニック") ||
+              (ans_ramen==0 && gyou.category=="ラーメン")
               id_genre.push(gyou.id)
             end
           end
 
-          id= id_place & id_time & id_genre #全てマッチした店のidを追加
-          id=[1,2,3,4,5,6,7,8,9,10]
 
-          #idにラーメンをpushするかしないか
+
+          id= id_place & id_time & id_genre #全てマッチした店のidを追加
+          #id=[1,2,3,4,5,6,7,8,9,10]
+
+
+
+          logger.debug("+++++++++++++++++++++-#{id_latlon}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_region}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_time}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_genre}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id}+++++++++++++++++++++++++")
 
           arr=[]
           Restaurant.all.each do |gyou|
             id.each do |i|
-              if gyou.id==i
+              if gyou.id==i  #find,find_by,whereメソッドがなぜか使えないので代用
                 arr.push(
                   {
                     "type": "bubble",
@@ -492,6 +500,23 @@ class LinebotController < ApplicationController
             end
           end
 
+          if arr.empty? #該当idがないとき
+            store_list=
+            {
+              "type": "text",
+              "text": "残念ながらありません..."
+            }
+          else
+            store_list=
+            {
+              "type": "flex",
+              "altText": "メッセージが届きました",
+              "contents": {
+                "type": "carousel",
+                "contents": arr #この配列にjsonが入ってる
+              }
+            }
+          end
 
           message=
           [
@@ -499,15 +524,9 @@ class LinebotController < ApplicationController
               "type": "text",
               "text": "おすすめのお店は..."
             },
-            {
-              "type": "flex",
-              "altText": "this is a flex message",
-              "contents": {
-                "type": "carousel",
-                "contents": arr #この配列にjsonが入ってる
-              }
-            }
+            store_list
           ]
+
           @@flag=0
         end
 
