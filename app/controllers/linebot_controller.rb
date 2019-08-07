@@ -410,6 +410,7 @@ class LinebotController < ApplicationController
           #id=[1,2,3,4,5,6,7,8,9,10]
           #id=[11,12,13,14,15,16,17,18,19,20]
 
+
           logger.debug("+++++++++++++++++++++-#{id_latlon}+++++++++++++++++++++++++")
           logger.debug("+++++++++++++++++++++-#{id_region}+++++++++++++++++++++++++")
           logger.debug("+++++++++++++++++++++-#{id_time}+++++++++++++++++++++++++")
@@ -420,6 +421,7 @@ class LinebotController < ApplicationController
           Restaurant.all.each do |gyou|
             id.each do |i|
               if gyou.id==i  #find,find_by,whereメソッドがなぜか使えないので代用
+                logger.debug("+++++++++++++++++++++-#{gyou.name}+++++++++++++++++++++++++")
                 arr.push(
                   {
                     "type": "bubble",
