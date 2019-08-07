@@ -407,7 +407,7 @@ class LinebotController < ApplicationController
           id= id_place & id_time & id_genre #全てマッチした店のidを追加
           id=id.shuffle.take(10)  #１０件を超えた場合、ランダムに１０件抽出
 
-          #id=[1,2,3,4,5,6,7,8,9,10]
+          id=[1,2,3,4,5,6,7,8,9,10]
 
           logger.debug("+++++++++++++++++++++-#{id_latlon}+++++++++++++++++++++++++")
           logger.debug("+++++++++++++++++++++-#{id_region}+++++++++++++++++++++++++")
