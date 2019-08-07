@@ -173,7 +173,7 @@ class LinebotController < ApplicationController
                 },
                 {
                   "type": "postback",
-                  "label": "一の矢・花畑周辺",
+                  "label": "花畑・筑穂周辺",
                   "data": "2.3",
                   text:"花畑・筑穂周辺あたりかな"
                 }
@@ -374,7 +374,7 @@ class LinebotController < ApplicationController
           ans_day=Answer.find_by(user:event["source"]["userId"]).day
           id_time=[]
           Restaurant.all.each do |gyou|
-            if ans_day==nil
+            if ans_day==nil  #スキップしたとき
               id_time.push(gyou.id)
             else
               ans_time=Answer.find_by(user:event["source"]["userId"]).time.gsub(/:/,".").to_f
@@ -387,8 +387,6 @@ class LinebotController < ApplicationController
               end
             end
           end
-
-
 
           #ジャンルを絞る
           ans_genre=Answer.find_by(user:event["source"]["userId"]).genre

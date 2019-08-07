@@ -114,23 +114,23 @@ Restaurant.create(
   img:"https://tblg.k-img.com/restaurant/images/Rvw/104957/150x150_square_104957758.jpg"
 )
 
-Restaurant.create(
-  name:"夢屋",
-  sun:"18.00-21.00",
-  mon:"11.30-13.45,18.00-22.00",
-  tue:"11.30-13.45,18.00-22.00",
-  wed:"-1",
-  thu:"11.30-13.45,18.00-22.00",
-  fry:"11.30-13.45,18.00-22.00",
-  sat:"11.30-13.45,18.00-22.00",
-  latitude:36.0986956,
-  longitude:140.0892459,
-  address:"茨城県つくば市春日4丁目4-5",
-  category:"洋食",
-  url:"",
-  tel:"029-858-0668",
-  img:"https://tblg.k-img.com/restaurant/images/Rvw/112066/150x150_square_112066912.jpg"
-)
+# Restaurant.create(
+#   name:"夢屋",
+#   sun:"18.00-21.00",
+#   mon:"11.30-13.45,18.00-22.00",
+#   tue:"11.30-13.45,18.00-22.00",
+#   wed:"-1",
+#   thu:"11.30-13.45,18.00-22.00",
+#   fry:"11.30-13.45,18.00-22.00",
+#   sat:"11.30-13.45,18.00-22.00",
+#   latitude:36.0986956,
+#   longitude:140.0892459,
+#   address:"茨城県つくば市春日4丁目4-5",
+#   category:"洋食",
+#   url:"",
+#   tel:"029-858-0668",
+#   img:"https://tblg.k-img.com/restaurant/images/Rvw/112066/150x150_square_112066912.jpg"
+# )
 
 Restaurant.create(
   name:"ラーメン志恩",
@@ -580,23 +580,23 @@ Restaurant.create(
     tel:"029-824-0073",
     img:"https://tblg.k-img.com/restaurant/images/Rvw/110567/150x150_square_110567489.jpg"
 )
-Restaurant.create(
-    name:"松屋 つくば西大通り店",
-    sun:"17.30-23.00",
-    mon:"17.30-23.00",
-    tue:"17.30-23.00",
-    wed:"17.30-23.00",
-    thu:"17.30-23.00",
-    fry:"17.30-23.00",
-    sat:"17.30-23.00",
-    latitude:36.0951797,
-    longitude:140.0965857,
-    address:"茨城県つくば市春日４丁目１−５",
-    category:"和食",
-    url:"https://tabelog.com/ibaraki/A0802/A080201/8012811/",
-    tel:"029-824-0073",
-    img:"https://tblg.k-img.com/restaurant/images/Rvw/43506/150x150_square_43506856.jpg"
-)
+# Restaurant.create(
+#     name:"松屋 つくば西大通り店",
+#     sun:"17.30-23.00",
+#     mon:"17.30-23.00",
+#     tue:"17.30-23.00",
+#     wed:"17.30-23.00",
+#     thu:"17.30-23.00",
+#     fry:"17.30-23.00",
+#     sat:"17.30-23.00",
+#     latitude:36.0951797,
+#     longitude:140.0965857,
+#     address:"茨城県つくば市春日４丁目１−５",
+#     category:"和食",
+#     url:"https://tabelog.com/ibaraki/A0802/A080201/8012811/",
+#     tel:"029-824-0073",
+#     img:"https://tblg.k-img.com/restaurant/images/Rvw/43506/150x150_square_43506856.jpg"
+# )
 Restaurant.create(
     name:"フライパン",
     sun:"11.00-22.00",
