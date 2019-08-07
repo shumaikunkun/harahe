@@ -345,8 +345,8 @@ class LinebotController < ApplicationController
             else
               dis=distance(ans_lat, ans_lon, gyou.latitude, gyou.longitude)
               if (ans_trans==0 && dis<=0.5 ) ||
-                (ans_trans==1 && dis>0.5 && dis<=2 ) ||
-                (ans_trans==2 && dis>2 && dis<=5 )
+                (ans_trans==1 && dis<=2 ) ||
+                (ans_trans==2 && dis<=5 )
                 id_latlon.push(gyou.id)
               end
             end
