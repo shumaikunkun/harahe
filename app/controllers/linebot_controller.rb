@@ -407,7 +407,8 @@ class LinebotController < ApplicationController
           id= id_place & id_time & id_genre #全てマッチした店のidを追加
           id=id.shuffle.take(10)  #１０件を超えた場合、ランダムに１０件抽出
 
-          id=[1,2,3,4,5,6,7,8,9,10]
+          #id=[1,2,3,4,5,6,7,8,9,10]
+          #id=[11,12,13,14,15,16,17,18,19,20]
 
           logger.debug("+++++++++++++++++++++-#{id_latlon}+++++++++++++++++++++++++")
           logger.debug("+++++++++++++++++++++-#{id_region}+++++++++++++++++++++++++")
@@ -439,7 +440,7 @@ class LinebotController < ApplicationController
                       "spacing": "md",
                       "action": {
                         "type": "uri",
-                        "uri": "https://github.com/shumaikunkun" ###
+                        "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
                       },
                       "contents": [
                         {
