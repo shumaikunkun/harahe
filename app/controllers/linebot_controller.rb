@@ -66,7 +66,7 @@ class LinebotController < ApplicationController
               type: "text",
               text: Time.new.strftime("今日は%Y年%m月%d日だよ！")
             }
-          elsif event["message"]["text"]=~/時刻|時間/
+          elsif event["message"]["text"]=~/時刻/
             message={
               type: "text",
               text: Time.new.strftime("今は%H時%M分だよ！")
