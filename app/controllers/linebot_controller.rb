@@ -22,7 +22,7 @@ class LinebotController < ApplicationController
     client.parse_events_from(body).each do |event|
       if event.class == Line::Bot::Event::Message
         if event.type == Line::Bot::Event::MessageType::Text
-          if event["message"]["text"]=~/検索/
+          if event["message"]["text"]=~/はらへ|ハラへ|ハラヘ|harahe/
             @@flag=1
             #モデルに登録&初期化
             #ユーザIDは、event["source"]["userId"]
@@ -61,10 +61,15 @@ class LinebotController < ApplicationController
                 ]
               }
             }
-          elsif event["message"]["text"]=="時刻"
+          elsif event["message"]["text"]=~/日付/
             message={
               type: "text",
-              text: Time.new
+              text: Time.new.strftime("今日は%Y年%m月%d日だよ！")
+            }
+          elsif event["message"]["text"]=~/時刻|時間/
+            message={
+              type: "text",
+              text: Time.new.strftime("今は%H時%M分だよ！")
             }
           elsif event["message"]["text"]=="画像"
             message={
@@ -75,7 +80,7 @@ class LinebotController < ApplicationController
             if @@flag!=1
               message={
                 type: "text",
-                text: "『検索』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
+                text: "『はらへ』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
               }
             end
           end
@@ -514,7 +519,7 @@ class LinebotController < ApplicationController
               "altText": "メッセージが届きました",
               "contents": {
                 "type": "carousel",
-                "contents": arr #この配列にjsonが入ってる
+                "contents": arr.shuffle #この配列にjsonが入ってる
               }
             }
           end
