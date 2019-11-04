@@ -15,16 +15,14 @@ class LinebotController < ApplicationController
 
   def callback
 
-
     body = request.body.read
-
     signature = request.env['HTTP_X_LINE_SIGNATURE']
     head :bad_request unless client.validate_signature(body, signature)
 
     client.parse_events_from(body).each do |event|
       if event.class == Line::Bot::Event::Message
         if event.type == Line::Bot::Event::MessageType::Text
-          if event["message"]["text"]=~/検索/
+          if event["message"]["text"]=~/はらへ|ハラへ|ハラヘ|harahe/
             @@flag=1
             #モデルに登録&初期化
             #ユーザIDは、event["source"]["userId"]
@@ -44,9 +42,9 @@ class LinebotController < ApplicationController
                 "actions": [
                   {
                     "type": "postback",
-                    "label": "地図から指定する",
+                    "label": "地図から出発地を指定する",
                     "data": "0.0",
-                    text:"地図から指定する"
+                    text:"地図から出発地を指定する"
                   },
                   {
                     "type": "postback",
@@ -63,14 +61,17 @@ class LinebotController < ApplicationController
                 ]
               }
             }
-
-
-          elsif event["message"]["text"]=="時刻"
+          elsif event["message"]["text"]=~/日付/
             message={
               type: "text",
-              text: Time.new
+              text: Time.new.strftime("今日は%Y年%m月%d日だよ！")
             }
-          elsif event["message"]["text"]=="現在地"
+          elsif event["message"]["text"]=~/時刻/
+            message={
+              type: "text",
+              text: Time.new.strftime("今は%H時%M分だよ！")
+            }
+          elsif event["message"]["text"]=="画像"
             message={
               type: "text",
               text: "test"
@@ -79,7 +80,7 @@ class LinebotController < ApplicationController
             if @@flag!=1
               message={
                 type: "text",
-                text: "『検索』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
+                text: "『はらへ』と送信すると筑波大学周辺の飲食店を絞り、優柔不断なあなたに最適なお店を提案します☺️"
               }
             end
           end
@@ -92,7 +93,7 @@ class LinebotController < ApplicationController
           # event["message"]["latitude"]
           # event["message"]["longitude"]
           #で参照できる
-          Answer.find_by(user:event["source"]["userId"]).update(lat:event["message"]["latitude"], lon:event["message"]["longitude"])
+          Answer.find_by(user:event["source"]["userId"]).update(lat:event["message"]["latitude"], lon:event["message"]["longitude"], region:nil)
           #質問１
           message = {
             "type": "template",
@@ -177,9 +178,9 @@ class LinebotController < ApplicationController
                 },
                 {
                   "type": "postback",
-                  "label": "一の矢・花畑周辺",
+                  "label": "花畑・筑穂周辺",
                   "data": "2.3",
-                  text:"一の矢・花畑周辺あたりかな"
+                  text:"花畑・筑穂周辺あたりかな"
                 }
               ]
             }
@@ -188,10 +189,10 @@ class LinebotController < ApplicationController
 
         if event["postback"]["data"].to_f>=0.2 && event["postback"]["data"].to_f<3 #0.2, 1. ,2.の時
           if event["postback"]["data"].to_i==1
-            Answer.find_by(user:event["source"]["userId"]).update(trans:event["postback"]["data"].split(".")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(trans:event["postback"]["data"].split(".")[1], region:nil)
             #交通手段取得
           elsif event["postback"]["data"].to_i==2
-            Answer.find_by(user:event["source"]["userId"]).update(region:event["postback"]["data"].split(".")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(region:event["postback"]["data"].split(".")[1], trans:nil, lat:nil, lon:nil)
             #地域取得
           end
 
@@ -251,14 +252,12 @@ class LinebotController < ApplicationController
 
           if event["postback"]["data"]=="3.1"
             #データベースに現在日時をデータベースに入れる
-            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(Time.now.strftime("%Y-%m-%d")).wday)
-            Answer.find_by(user:event["source"]["userId"]).update(time:Time.now.strftime("%H:%M"))
+            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(Time.now.strftime("%Y-%m-%d")).wday, time:Time.now.strftime("%H:%M"))
             #text: Date.parse(Time.now.strftime("%Y-%m-%d")).wday
             #text: Time.now.strftime("%H:%M")
           elsif event["postback"]["data"]=="3.3"
             #データベースに選択された日時をデータベースに入れる
-            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday)
-            Answer.find_by(user:event["source"]["userId"]).update(time:event["postback"]["params"]["datetime"].split("T")[1])
+            Answer.find_by(user:event["source"]["userId"]).update(day:Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday, time:event["postback"]["params"]["datetime"].split("T")[1])
             #text: Date.parse(event["postback"]["params"]["datetime"].split("T")[0]).wday
             #text: event["postback"]["params"]["datetime"].split("T")[1]
           end
@@ -281,19 +280,19 @@ class LinebotController < ApplicationController
                   "type": "postback",
                   "label": "洋食",
                   "data": "4.1",
-                  text: "洋食いい！"
+                  text: "洋食がいい！"
                 },
                 {
                   "type": "postback",
                   "label": "中華",
                   "data": "4.2",
-                  text: "中華いい！"
+                  text: "中華がいい！"
                 },
                 {
                   "type": "postback",
                   "label": "エスニック",
                   "data": "4.3",
-                  text: "エスニックいい！"
+                  text: "エスニックがいい！"
                 }
               ]
             }
@@ -332,34 +331,112 @@ class LinebotController < ApplicationController
           #ラーメンだけにするか。しないかをモデルに格納
           Answer.find_by(user:event["source"]["userId"]).update(ramen:event["postback"]["data"].split(".")[1])
           #検索結果
-          json=Answer.find_by(user:event["source"]["userId"]).to_json
-          message=
-          [
-            {
-              "type": "text",
-              "text": json
-            },
-            {
-              "type": "text",
-              "text": "おすすめのお店は..."
-            },
-            {
-              "type": "flex",
-              "altText": "this is a flex message",
-              "contents": {
-                "type": "carousel",
-                "contents": [
+          #json=Answer.find_by(user:event["source"]["userId"]).to_json
+
+          #Restaurant.where(img:"https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg").each{|gyou|arr.push({img:gyou.img, name:gyou.name, url:gyou.url, address:gyou.address, time:gyou.mon})}
+          day_arr=["sun","mon","tue","wed","thu","fry","sat"]
+          day_num=Answer.where(user:event["source"]["userId"]).pluck(:day)[0] ? Answer.where(user:event["source"]["userId"]).pluck(:day)[0] : Date.parse(Time.now.strftime("%Y-%m-%d")).wday
+          #曜日を選択してなければ、今日の曜日を格納
+          day=day_arr[day_num]  #店一覧表示の際の開店時間を表示するために曜日を指定（数値をスキーマ名に変換）
+
+          #緯度経度で絞る
+          ans_lat=Answer.find_by(user:event["source"]["userId"]).lat
+          ans_lon=Answer.find_by(user:event["source"]["userId"]).lon
+          ans_trans=Answer.find_by(user:event["source"]["userId"]).trans
+          id_latlon=[]
+          Restaurant.all.each do |gyou|
+            if ans_trans==nil  #スキップしたとき
+              id_latlon.push(gyou.id)
+            else
+              dis=distance(ans_lat, ans_lon, gyou.latitude, gyou.longitude)
+              if (ans_trans==0 && dis<=0.5 ) ||
+                (ans_trans==1 && dis<=2 ) ||
+                (ans_trans==2 && dis<=5 )
+                id_latlon.push(gyou.id)
+              end
+            end
+          end
+
+          #地名で絞る
+          ans_region=Answer.find_by(user:event["source"]["userId"]).region
+          id_region=[]
+          Restaurant.all.each do |gyou|
+            if ans_region==nil  #スキップしたとき
+              id_region.push(gyou.id)
+            else
+              if (ans_region==0 && (gyou.address=~/茨城県つくば市吾妻/ || gyou.address=~/茨城県つくば市竹園/) ) ||
+                (ans_region==1 && (gyou.address=~/茨城県つくば市春日/ || gyou.address=~/茨城県つくば市天久保/) ) ||
+                (ans_region==2 && (gyou.address=~/茨城県つくば市天王台/ || gyou.address=~/茨城県つくば市桜/) ) ||
+                (ans_region==3 && (gyou.address=~/茨城県つくば市花畑/ || gyou.address=~/茨城県つくば市筑穂/) )
+                id_region.push(gyou.id)
+              end
+            end
+          end
+
+          id_place = id_latlon & id_region #緯度経度と地名のジャンルで絞ったidリストの積集合
+
+          #時間で絞る
+          ans_day=Answer.find_by(user:event["source"]["userId"]).day
+          id_time=[]
+          Restaurant.all.each do |gyou|
+            if ans_day==nil  #スキップしたとき
+              id_time.push(gyou.id)
+            else
+              ans_time=Answer.find_by(user:event["source"]["userId"]).time.gsub(/:/,".").to_f
+              if gyou[day_arr[ans_day]] != "-1" #休みの場合を排除
+                gyou[day_arr[ans_day]].split(",").each do |set|  #格納した曜日と一致する曜日の時間帯に入るか
+                  if set.split("-")[0].to_f<=ans_time && ans_time<=set.split("-")[1].to_f
+                    id_time.push(gyou.id)
+                  end
+                end
+              end
+            end
+          end
+
+          #ジャンルを絞る
+          ans_genre=Answer.find_by(user:event["source"]["userId"]).genre
+          ans_ramen=Answer.find_by(user:event["source"]["userId"]).ramen
+          id_genre=[]
+          Restaurant.all.each do |gyou|
+            if (ans_genre==0 && gyou.category=="和食") || (ans_genre==1 && gyou.category=="洋食") ||
+              (ans_genre==2 && gyou.category=="中華") || (ans_genre==3 && gyou.category=="エスニック") ||
+              (ans_ramen==0 && gyou.category=="ラーメン")
+              id_genre.push(gyou.id)
+            end
+          end
+
+
+
+          id= id_place & id_time & id_genre #全てマッチした店のidを追加
+          id=id.shuffle.take(10)  #１０件を超えた場合、ランダムに１０件抽出
+
+          #id=[1,2,3,4,5,6,7,8,9,10]
+          #id=[11,12,13,14,15,16,17,18,19,20]
+
+
+          logger.debug("+++++++++++++++++++++-#{id_latlon}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_region}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_time}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id_genre}+++++++++++++++++++++++++")
+          logger.debug("+++++++++++++++++++++-#{id}+++++++++++++++++++++++++")
+
+          arr=[]
+          Restaurant.all.each do |gyou|
+            id.each do |i|
+              if gyou.id==i  #find,find_by,whereメソッドがなぜか使えないので代用
+                logger.debug("+++++++++++++++++++++-#{gyou.name}+++++++++++++++++++++++++")
+                arr.push(
                   {
                     "type": "bubble",
                     "hero": {
                       "type": "image",
-                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
+                      "url": gyou.img, ###
                       "size": "full",
                       "aspectRatio": "20:13",
                       "aspectMode": "cover",
                       "action": {
                         "type": "uri",
-                        "uri": "https://classmethod.jp/"
+                        "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
                       }
                     },
                     "body": {
@@ -368,12 +445,12 @@ class LinebotController < ApplicationController
                       "spacing": "md",
                       "action": {
                         "type": "uri",
-                        "uri": "https://classmethod.jp/"
+                        "uri": (gyou.url=="" ? "https://github.com/shumaikunkun" : gyou.url) ###
                       },
                       "contents": [
                         {
                           "type": "text",
-                          "text": "清六屋",
+                          "text": gyou.name, ###
                           "size": "xl",
                           "weight": "bold"
                         },
@@ -391,7 +468,7 @@ class LinebotController < ApplicationController
                             },
                             {
                               "type": "text",
-                              "text": "茨城県つくば市天久保3丁目4-8",
+                              "text": gyou.address, ###
                               "wrap": true,
                               "color": "#666666",
                               "size": "sm",
@@ -413,82 +490,7 @@ class LinebotController < ApplicationController
                             },
                             {
                               "type": "text",
-                              "text": "10:00-18:00",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "type": "bubble",
-                    "hero": {
-                      "type": "image",
-                      "url": "https://tblg.k-img.com/restaurant/images/Rvw/20748/640x640_rect_20748683.jpg",
-                      "size": "full",
-                      "aspectRatio": "20:13",
-                      "aspectMode": "cover",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      }
-                    },
-                    "body": {
-                      "type": "box",
-                      "layout": "vertical",
-                      "spacing": "md",
-                      "action": {
-                        "type": "uri",
-                        "uri": "https://classmethod.jp/"
-                      },
-                      "contents": [
-                        {
-                          "type": "text",
-                          "text": "清六屋",
-                          "size": "xl",
-                          "weight": "bold"
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "Place",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "茨城県つくば市天久保3丁目4-8",
-                              "wrap": true,
-                              "color": "#666666",
-                              "size": "sm",
-                              "flex": 5
-                            }
-                          ]
-                        },
-                        {
-                          "type": "box",
-                          "layout": "baseline",
-                          "spacing": "sm",
-                          "contents": [
-                            {
-                              "type": "text",
-                              "text": "営業時間",
-                              "color": "#aaaaaa",
-                              "size": "sm",
-                              "flex": 1
-                            },
-                            {
-                              "type": "text",
-                              "text": "10:00-18:00",
+                              "text": (gyou[day]=="-1" ? "本日休業日" : gyou[day]), ###
                               "wrap": true,
                               "color": "#666666",
                               "size": "sm",
@@ -499,10 +501,38 @@ class LinebotController < ApplicationController
                       ]
                     }
                   }
-                ]
+                )
+              end
+            end
+          end
+
+          if arr.empty? #該当idがないとき
+            store_list=
+            {
+              "type": "text",
+              "text": "残念ながらありません..."
+            }
+          else
+            store_list=
+            {
+              "type": "flex",
+              "altText": "メッセージが届きました",
+              "contents": {
+                "type": "carousel",
+                "contents": arr.shuffle #この配列にjsonが入ってる
               }
             }
+          end
+
+          message=
+          [
+            {
+              "type": "text",
+              "text": "おすすめのお店は..."
+            },
+            store_list
           ]
+
           @@flag=0
         end
 
@@ -513,6 +543,31 @@ class LinebotController < ApplicationController
 
     end
     head :ok
+  end
+
+
+  #単位はkm
+  #lat1,lng1は現在位置の緯度経度、lat2,lng2は店舗の緯度経度
+  def distance(lat1, lng1, lat2, lng2)
+    # ラジアン単位に変換
+    x1 = lat1.to_f * Math::PI / 180
+    y1 = lng1.to_f * Math::PI / 180
+    x2 = lat2.to_f * Math::PI / 180
+    y2 = lng2.to_f * Math::PI / 180
+    # 地球の半径 (km)
+    radius = 6378.137
+    # 差の絶対値
+    diff_y = (y1 - y2).abs
+    calc1 = Math.cos(x2) * Math.sin(diff_y)
+    calc2 = Math.cos(x1) * Math.sin(x2) - Math.sin(x1) * Math.cos(x2) * Math.cos(diff_y)
+    # 分子
+    numerator = Math.sqrt(calc1 ** 2 + calc2 ** 2)
+    # 分母
+    denominator = Math.sin(x1) * Math.sin(x2) + Math.cos(x1) * Math.cos(x2) * Math.cos(diff_y)
+    # 弧度
+    degree = Math.atan2(numerator, denominator)
+    # 大円距離 (km)
+    return degree * radius
   end
 
 end
